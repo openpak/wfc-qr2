@@ -1,0 +1,17 @@
+[Unit]
+Description=OpenPak WFC qr2
+After=openpak-postgres.service
+
+[Container]
+ContainerName=openpak-wfc-qr2
+Image=ghcr.io/openpak/wfc-qr2:latest
+Network=openpak.network
+EnvironmentFile=%h/openpak/deploy/wfc-full/wfc-qr2.env
+Volume=%h/openpak/deploy/wfc-split/token.key:/keys/wfc-token.key:ro,U
+PublishPort=0.0.0.0:27900:27900/udp
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
