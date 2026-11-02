@@ -29,7 +29,7 @@ docker build -t wfc-qr2 .
 
 - [Protocol](docs/protocol.md)
 - [Deploy](docs/deploy.md)
-- [Notes](docs/notes.md)
+- [Provenance](docs/provenance.md)
 
 ## Licence
 
