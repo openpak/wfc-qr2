@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.2 - 2026-11-03
+
+- Internal `/internal/` polls are counted and summarised once a minute instead of logged per call (wfc-common v0.3.1).
+
 ## v0.3.1 - 2026-11-03
 
 - Every qr2 message now logs one line to stderr, `qr2 cmd <name> -> <result> <ms>ms` (verb and result only, never payload values) (every UDP packet type, including heartbeat and keepalive). Internal HTTP logs as above through wfc-common v0.3.0 `httplog`.
