@@ -5,6 +5,7 @@ import (
 	"net"
 	"openpak/wfc-common/common"
 	"openpak/wfc-common/database"
+	"openpak/wfc-common/httplog"
 	"openpak/wfc-common/logging"
 	"sync"
 	"sync/atomic"
@@ -154,6 +155,9 @@ func handleConnection(conn net.PacketConn, addr net.UDPAddr, buffer []byte) {
 	packetType := buffer[0]
 	moduleName := "QR2:" + addr.String()
 
+	start, result := time.Now(), "ok"
+	defer func() { httplog.Command("qr2", packetName(packetType), result, start) }()
+
 	var session *Session
 	if packetType != HeartbeatRequest && packetType != AvailableRequest {
 		mutex.Lock()
@@ -162,6 +166,7 @@ func handleConnection(conn net.PacketConn, addr net.UDPAddr, buffer []byte) {
 		session, ok = sessions[makeLookupAddr(addr.String())]
 		if !ok {
 			mutex.Unlock()
+			result = "no_session"
 			logging.Error(moduleName, "Cannot find session for this IP address")
 			return
 		}
@@ -243,6 +248,7 @@ func handleConnection(conn net.PacketConn, addr net.UDPAddr, buffer []byte) {
 		}
 
 	default:
+		result = "unknown"
 		logging.Error(moduleName, "Unknown command:", aurora.Yellow(buffer[0]))
 		return
 	}
@@ -250,4 +256,35 @@ func handleConnection(conn net.PacketConn, addr net.UDPAddr, buffer []byte) {
 
 func createResponseHeader(command byte, sessionId uint32) []byte {
 	return binary.BigEndian.AppendUint32([]byte{0xfe, 0xfd, command}, sessionId)
+}
+
+// packetName is the log name of a QR2 packet type; unrecognised types all log as "unknown".
+func packetName(t byte) string {
+	switch t {
+	case QueryRequest:
+		return "query"
+	case ChallengeRequest:
+		return "challenge"
+	case EchoRequest:
+		return "echo"
+	case HeartbeatRequest:
+		return "heartbeat"
+	case AddErrorRequest:
+		return "add_error"
+	case EchoResponseRequest:
+		return "echo_response"
+	case ClientMessageRequest:
+		return "client_message"
+	case ClientMessageAckRequest:
+		return "client_message_ack"
+	case KeepAliveRequest:
+		return "keepalive"
+	case AvailableRequest:
+		return "available"
+	case ClientRegisteredReply:
+		return "client_registered"
+	case ClientExploitReply:
+		return "client_exploit_ack"
+	}
+	return "unknown"
 }
