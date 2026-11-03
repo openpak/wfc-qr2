@@ -4,6 +4,7 @@ import "openpak/wfc-common/common"
 
 type Login struct {
 	ProfileID                                     uint32
+	UserID                                        uint64
 	Generation                                    string
 	Revision                                      int64
 	GameCode, InGameName                          string

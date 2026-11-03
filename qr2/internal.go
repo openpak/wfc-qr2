@@ -42,6 +42,9 @@ func applyLogin(v wfcapi.Login, now time.Time) {
 		logins[v.ProfileID] = old
 	}
 	old.ProfileID = v.ProfileID
+	if v.UserID != 0 {
+		old.UserID = v.UserID
+	}
 	old.Generation = v.Generation
 	old.Revision = v.Revision
 	old.GameCode = v.GameCode

@@ -19,6 +19,12 @@ OpenPak's Wii/DS QR2 Server.
 | Protocol and internal paths | Require `WFC_INTERNAL_KEY` |
 | `27900/udp` | QR2 registration and heartbeat |
 
+## Rewards
+
+Set `REWARDS_EVENTS_URL` and `REWARDS_EVENTS_KEY` (or `REWARDS_EVENTS_KEY_FILE`) to report Mario Kart
+Wii and DS online sessions; `REWARDS_SESSION_MIN` (default `3m`) is how long two players must share
+a group. See [Deploy](docs/deploy.md).
+
 ## Build
 
 ```sh

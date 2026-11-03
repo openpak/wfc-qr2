@@ -9,6 +9,7 @@ replace openpak/wfc-common => ../wfc-common
 require (
 	github.com/linkdata/deadlock v0.5.5
 	github.com/logrusorgru/aurora/v3 v3.0.0
+	github.com/openpak/rewards-emit v0.1.0
 	gvisor.dev/gvisor v0.0.0-20250512220230-2268d0cbb0f5
 )
 

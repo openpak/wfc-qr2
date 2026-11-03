@@ -14,6 +14,7 @@ type LoginInfo struct {
 	UpdatedAt   int64
 
 	ProfileID           uint32
+	UserID              uint64
 	GameCode            string
 	InGameName          string
 	ConsoleFriendCode   uint64

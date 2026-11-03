@@ -86,6 +86,8 @@ func StartServer(reload bool) {
 		logging.Notice("QR2", "Loaded", aurora.Cyan(len(groups)), "groups")
 	}
 
+	startRewards()
+
 	waitGroup.Add(1)
 
 	go func() {
@@ -119,6 +121,7 @@ func Shutdown() {
 	inShutdown.Store(true)
 	common.ShouldNotError(masterConn.Close())
 	waitGroup.Wait()
+	stopRewards()
 
 	mutex.Lock()
 	defer mutex.Unlock()

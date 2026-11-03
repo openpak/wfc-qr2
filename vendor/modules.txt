@@ -31,6 +31,9 @@ github.com/linkdata/deadlock
 # github.com/logrusorgru/aurora/v3 v3.0.0
 ## explicit; go 1.14
 github.com/logrusorgru/aurora/v3
+# github.com/openpak/rewards-emit v0.1.0
+## explicit; go 1.26.0
+github.com/openpak/rewards-emit
 # github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe
 ## explicit; go 1.17
 github.com/petermattis/goid
