@@ -7,8 +7,11 @@ package qr2
 // Players are identified by the console user id (the id the website links), not the profile id.
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"sort"
 	"strconv"
@@ -56,6 +59,42 @@ type sessionClock struct {
 func newSessionClock(min time.Duration) *sessionClock {
 	return &sessionClock{min: min, since: map[string]time.Time{}, emitted: map[string]bool{}}
 }
+
+// clockState is the clock as stored in Postgres through rewards-emit (SaveState / LoadState), so a
+// restart loses no half-served session.
+type clockState struct {
+	Since   map[string]int64 `json:"since"` // unix nanoseconds
+	Emitted []string         `json:"emitted"`
+}
+
+func (c *sessionClock) state() []byte {
+	st := clockState{Since: map[string]int64{}, Emitted: []string{}}
+	for k, t := range c.since {
+		st.Since[k] = t.UnixNano()
+	}
+	for k := range c.emitted {
+		st.Emitted = append(st.Emitted, k)
+	}
+	sort.Strings(st.Emitted)
+	b, _ := json.Marshal(st)
+	return b
+}
+
+func (c *sessionClock) restore(b []byte) error {
+	var st clockState
+	if err := json.Unmarshal(b, &st); err != nil {
+		return err
+	}
+	for k, n := range st.Since {
+		c.since[k] = time.Unix(0, n)
+	}
+	for _, k := range st.Emitted {
+		c.emitted[k] = true
+	}
+	return nil
+}
+
+const clockStateName = "session_clock"
 
 // tick takes the groups now and returns the (group, player) pairs that just crossed the minimum.
 // A group with fewer than two players resets its players.
@@ -151,12 +190,28 @@ func watchSessions(rw *emit.Client, snapshot func() []sessionGroup, min, every t
 	go func() {
 		defer close(finished)
 		clock := newSessionClock(min)
+		if b, ok := rw.LoadState(clockStateName); ok {
+			if err := clock.restore(b); err != nil {
+				log.Printf("wfc-qr2: session clock state unreadable, starting empty: %v", err)
+			} else {
+				log.Printf("wfc-qr2: session clock restored (%d running, %d counted)", len(clock.since), len(clock.emitted))
+			}
+		}
+		var saved []byte
+		save := func() {
+			if b := clock.state(); !bytes.Equal(b, saved) {
+				rw.SaveState(clockStateName, b)
+				saved = b
+			}
+		}
+		defer save()
 		t := time.NewTicker(every)
 		defer t.Stop()
 		for {
 			for _, p := range clock.tick(time.Now(), snapshot()) {
 				emitSession(rw, p)
 			}
+			save()
 			select {
 			case <-t.C:
 			case <-done:

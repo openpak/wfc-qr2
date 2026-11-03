@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -122,5 +123,57 @@ func TestWatcherReachesRewards(t *testing.T) {
 	}
 	if len(got) != 2 || len(subs) != 2 {
 		t.Fatalf("want one event per player, got %v", got)
+	}
+}
+
+// A restarted clock (state saved, new instance restored) keeps half-served sessions and never
+// counts a player twice.
+func TestSessionClockRestart(t *testing.T) {
+	c := newSessionClock(3 * time.Minute)
+	t0 := time.Now()
+	two := []sessionGroup{grp("b:2", 10, 20)}
+	c.tick(t0, two)
+	b := c.state()
+
+	c2 := newSessionClock(3 * time.Minute)
+	if err := c2.restore(b); err != nil {
+		t.Fatal(err)
+	}
+	d := c2.tick(t0.Add(3*time.Minute), two)
+	if len(d) != 2 {
+		t.Fatalf("restored clock lost the half-served session: %v", d)
+	}
+	b = c2.state()
+	c3 := newSessionClock(3 * time.Minute)
+	if err := c3.restore(b); err != nil {
+		t.Fatal(err)
+	}
+	if d := c3.tick(t0.Add(4*time.Minute), two); len(d) != 0 {
+		t.Fatalf("counted twice after restart: %v", d)
+	}
+}
+
+// Through the real Postgres-backed state store (REWARDS_TEST_DATABASE_URL).
+func TestSessionClockStateInPostgres(t *testing.T) {
+	url := os.Getenv("REWARDS_TEST_DATABASE_URL")
+	if url == "" {
+		t.Skip("REWARDS_TEST_DATABASE_URL not set")
+	}
+	mk := func() *emit.Client {
+		return emit.New(emit.Config{URL: "http://127.0.0.1:1", Key: "k", Source: "wfc-qr2-test", DatabaseURL: url})
+	}
+	c := newSessionClock(time.Minute)
+	c.tick(time.Now(), []sessionGroup{grp("z:9", 1, 2)})
+	rw := mk()
+	rw.SaveState(clockStateName, c.state())
+	rw.Close(context.Background())
+	rw2 := mk()
+	defer rw2.Close(context.Background())
+	b, ok := rw2.LoadState(clockStateName)
+	if !ok {
+		t.Fatal("state not found after restart")
+	}
+	if err := newSessionClock(time.Minute).restore(b); err != nil {
+		t.Fatal(err)
 	}
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.0 - 2026-11-03
+
+- The counted-session clock is kept in Postgres through rewards-emit v0.3.0 (`REWARDS_EMIT_DATABASE_URL`), restored on start and saved after every change, so a restart loses no half-served session and counts no player twice. Rewards events also queue in Postgres.
+
 ## v0.2.0
 
 - Rewards: reports Mario Kart Wii (`kart_sessions.mkwii`) and Mario Kart DS (`kart_sessions.mkds`)
