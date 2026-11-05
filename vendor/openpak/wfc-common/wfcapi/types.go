@@ -11,6 +11,11 @@ type Login struct {
 	ConsoleFriendCode                             uint64
 	FriendKeyGame, GPPublicIP                     string
 	NeedsExploit, DeviceAuthenticated, Restricted bool
+	// Unlinked marks the session of a Wii on the DNS-exploit path that is not linked to an
+	// OpenPak account: it logged in only so QR2 can deliver the payload, and its exlogin will be
+	// refused. QR2 gives it the exploit and nothing else. False for every other login (and for
+	// gpcm builds that predate link-first).
+	Unlinked bool `json:",omitempty"`
 }
 type Session struct {
 	Login                Login
@@ -43,6 +48,7 @@ type QR2Response struct {
 }
 type GPCMRequest struct {
 	ProfileID        uint32
+	UserID           uint64 `json:",omitempty"` // kick-user: every session of this console
 	Generation       string
 	SessionKey       int32
 	GameName, Reason string
@@ -50,6 +56,7 @@ type GPCMRequest struct {
 }
 type GPCMResponse struct {
 	Sessions   []Session
+	Kicked     int `json:",omitempty"` // kick-user: sessions closed
 	UniqueNick string
 	Valid      bool
 }

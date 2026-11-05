@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.0 - 2026-11-05
+
+- Link-first (prds#139): a login projection flagged `Unlinked` (a Wii on the DNS-exploit path that is not linked) is sent the payload exploit and nothing else; its session is dropped once the exploit is out and it is never listed. Refusals are summarised once a minute. Vendors wfc-common v0.8.0.
+
 ## v0.3.2 - 2026-11-03
 
 - Internal `/internal/` polls are counted and summarised once a minute instead of logged per call (wfc-common v0.3.1).

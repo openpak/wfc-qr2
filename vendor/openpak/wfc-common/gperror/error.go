@@ -444,7 +444,10 @@ func (err GPError) GetMessageTranslate(gameName string, region byte, lang byte, 
 		}
 
 		errMsg = wwfcMessage.MessageRMC[lang]
-		if errMsg == "" || lang == LangEnglish {
+		// Found, or English (which every message has): done. Otherwise map the EU variants and
+		// fall back to English. (Upstream broke out on a missing message, so a language with no
+		// translation got no text at all.)
+		if errMsg != "" || lang == LangEnglish {
 			break
 		}
 

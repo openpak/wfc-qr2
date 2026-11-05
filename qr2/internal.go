@@ -55,6 +55,7 @@ func applyLogin(v wfcapi.Login, now time.Time) {
 	old.NeedsExploit = v.NeedsExploit
 	old.DeviceAuthenticated = v.DeviceAuthenticated
 	old.Restricted = v.Restricted
+	old.Unlinked = v.Unlinked
 	old.RemoteUntil = now.Add(30 * time.Second).UnixNano()
 	old.UpdatedAt = now.UnixNano()
 	generations.Store(v.ProfileID, v.Generation)

@@ -125,6 +125,18 @@ func heartbeat(moduleName string, conn net.PacketConn, addr net.UDPAddr, buffer 
 		}
 	}
 
+	// Link-first: an unlinked console gets the payload exploit and nothing else. Once the
+	// exploit is out (or none is needed) its session is dropped, so it is never matched.
+	if login := session.login; login != nil && login.Unlinked {
+		if session.ExploitReceived || !login.NeedsExploit {
+			mutex.Lock()
+			removeSession(lookupAddr)
+			mutex.Unlock()
+			unlinkedDrops.Add(1)
+		}
+		return
+	}
+
 	mutex.Lock()
 	if session.groupPointer != nil {
 		if session.groupPointer.server == nil {

@@ -23,7 +23,10 @@ type LoginInfo struct {
 	NeedsExploit        bool
 	DeviceAuthenticated bool
 	Restricted          bool
-	session             *Session
+	// Unlinked: a Wii on the DNS-exploit path not linked to an OpenPak account (link-first).
+	// It is sent the exploit and nothing else, and never listed or matched.
+	Unlinked bool
+	session  *Session
 }
 
 var logins = map[uint32]*LoginInfo{}

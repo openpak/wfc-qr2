@@ -62,7 +62,7 @@ gvisor.dev/gvisor/pkg/goid
 gvisor.dev/gvisor/pkg/sleep
 gvisor.dev/gvisor/pkg/sync
 # openpak/wfc-common v0.0.0 => ../wfc-common
-## explicit; go 1.25.0
+## explicit; go 1.26.0
 openpak/wfc-common/common
 openpak/wfc-common/database
 openpak/wfc-common/filter

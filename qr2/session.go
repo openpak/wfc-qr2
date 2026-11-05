@@ -285,6 +285,10 @@ func GetSessionServers() []map[string]string {
 		if !session.Authenticated {
 			continue
 		}
+		// Link-first: an unlinked console is never listed.
+		if session.login != nil && session.login.Unlinked {
+			continue
+		}
 
 		row := make(map[string]string, len(session.Data))
 		for k, v := range session.Data {

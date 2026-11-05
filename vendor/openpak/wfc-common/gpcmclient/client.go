@@ -36,3 +36,11 @@ func Sessions(ctx context.Context) ([]wfcapi.Session, error) {
 func Callback(ctx context.Context, pid uint32, generation, reason string) error {
 	return wfcapi.Call(ctx, "WFC_GPCM_URL", "/internal/v1/gpcm/callback", wfcapi.GPCMRequest{ProfileID: pid, Generation: generation, Reason: reason}, nil)
 }
+
+// KickUser closes every GPCM session of a console (reason "unlinked", "account_deleted" or
+// "banned") and returns how many it closed. Used when the account core unlinks a console.
+func KickUser(ctx context.Context, userID uint64, reason string) (int, error) {
+	var out wfcapi.GPCMResponse
+	err := wfcapi.Call(ctx, "WFC_GPCM_URL", "/internal/v1/gpcm/kick-user", wfcapi.GPCMRequest{UserID: userID, Reason: reason}, &out)
+	return out.Kicked, err
+}
