@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.0 - 2026-11-05
+
+- WFC_PROXY_LISTEN: the UDP socket also takes PROXY v2 framed datagrams from wfc-front and answers those players through it, so QR2 sees real public addresses and no longer drops Wii heartbeats as 'Public IP mismatch' (prds#149). Vendors wfc-common v0.9.0.
+
 ## v0.4.0 - 2026-11-05
 
 - Link-first (prds#139): a login projection flagged `Unlinked` (a Wii on the DNS-exploit path that is not linked) is sent the payload exploit and nothing else; its session is dropped once the exploit is out and it is never listed. Refusals are summarised once a minute. Vendors wfc-common v0.8.0.

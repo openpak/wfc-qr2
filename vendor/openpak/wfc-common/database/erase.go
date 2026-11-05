@@ -13,6 +13,19 @@ import (
 // database, so this is the single place an account's WFC data lives. Tables that an older
 // deployment never created are skipped.
 func (c *Connection) EraseUsers(ctx context.Context, userIDs []int64) (int, error) {
+	return c.eraseUsers(ctx, userIDs, false)
+}
+
+// ClearConsoleData removes a console's online game data and personal fields but keeps its
+// protocol ids (the users rows: user id, game profile ids, device ids, bans), so the console's
+// own saved WFC data still matches and it can go online again after being relinked. It is the
+// "also erase this console's online game data" option of an unlink (prds#139); deleting the
+// account uses EraseUsers. Returns the rows deleted or cleared.
+func (c *Connection) ClearConsoleData(ctx context.Context, userIDs []int64) (int, error) {
+	return c.eraseUsers(ctx, userIDs, true)
+}
+
+func (c *Connection) eraseUsers(ctx context.Context, userIDs []int64, keepIDs bool) (int, error) {
 	if len(userIDs) == 0 {
 		return 0, nil
 	}
@@ -62,6 +75,10 @@ func (c *Connection) EraseUsers(ctx context.Context, userIDs []int64) (int, erro
 		{"wfc_pairing_codes", `DELETE FROM wfc_pairing_codes WHERE user_id = ANY($1::bigint[])`, userIDs},
 		{"wfc_pairing_linked", `DELETE FROM wfc_pairing_linked WHERE user_id = ANY($1::bigint[])`, userIDs},
 		{"users", `DELETE FROM users WHERE user_id = ANY($1::bigint[])`, userIDs},
+	}
+	if keepIDs {
+		steps[len(steps)-1].sql = `UPDATE users SET firstname = NULL, lastname = '', last_ip_address = '', last_ingamesn = ''
+			WHERE user_id = ANY($1::bigint[])`
 	}
 	total := 0
 	for _, s := range steps {
